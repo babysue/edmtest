@@ -112,7 +112,7 @@
         return;
       }
 
-      const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(data.email)) {
         err.textContent = "❌ 電子郵件格式不正確。";
         err.style.display = 'block';
