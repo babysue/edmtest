@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Future Cities Symposium 2025 Registration</title>
+</head>
+<body>
+  <form id="f">
+    <input name="first_name" placeholder="First Name" required><br>
+    <input name="last_name" placeholder="Last Name" required><br>
+    <input name="email" type="email" placeholder="Email" required><br>
+    <input name="phone" placeholder="Phone"><br>
+    <input name="organization" placeholder="Organization"><br>
+    <input name="job_title" placeholder="Job Title"><br>
+    <input name="company_type" placeholder="Company Type" required><br>
+    <input name="full_name_certificate" placeholder="Full Name on Certificate" required><br>
+    <button id="submit-btn" type="submit">Submit</button>
+  </form>
+
+  <div id="loading" style="display:none;">Submitting...</div>
+  <div id="ok" style="display:none;color:green;">✅ 提交成功！</div>
+  <div id="err" style="display:none;color:red;">❌ 發送失敗</div>
+
+  <script>
+    const postUrl = "https://script.google.com/macros/s/AKfycby7uDH0vrMIej56T337r1nAEYxKRy4abMyCdb8TWKCZjcQoDXATutUdqOYZw3MSg-JCwg/exec";
+
+    document.getElementById('f').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const submitBtn = document.getElementById('submit-btn');
+      const loading = document.getElementById('loading');
+      const err = document.getElementById('err');
+      const ok = document.getElementById('ok');
+
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      const requiredFields = ['first_name', 'last_name', 'email', 'company_type', 'full_name_certificate'];
+      const missing = requiredFields.filter(k => !data[k] || data[k].trim() === '');
+      if (missing.length) {
+        err.textContent = "請完整填寫所有必填欄位。Please complete all required fields.";
+        err.style.display = 'block';
+        ok.style.display = 'none';
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        err.textContent = "請輸入有效的電子郵件地址。Please enter a valid email address.";
+        err.style.display = 'block';
+        ok.style.display = 'none';
+        return;
+      }
+
+      err.style.display = 'none';
+      ok.style.display = 'none';
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+
+      try {
+        const payload = new URLSearchParams(data).toString();
+        const resp = await fetch(postUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body: payload
+        });
+
+        let result;
+        try {
+          result = await resp.json();
+        } catch {
+          const text = await resp.text();
+          try { result = JSON.parse(text); } catch { throw new Error('Server response format error'); }
+        }
+
+        if (result && (result.ok === true || result.status === 'OK')) {
+          ok.style.display = 'block';
+          err.style.display = 'none';
+          form.reset();
+          setTimeout(() => { window.location.href = 'edm.html'; }, 5000);
+        } else {
+          throw new Error((result && (result.error || result.message)) || 'Unknown server error');
+        }
+      } catch (ex) {
+        err.textContent = `提交失敗: ${ex.message}`;
+        err.style.display = 'block';
+        ok.style.display = 'none';
+      } finally {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
